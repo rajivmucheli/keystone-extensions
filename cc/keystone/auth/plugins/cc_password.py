@@ -16,7 +16,6 @@ import requests
 import re
 
 from requests.auth import to_native_string
-from base64 import b64encode
 
 from oslo_log import log
 from oslo_config import cfg
@@ -106,12 +105,13 @@ class Password(base.AuthMethodHandler):
 
             # don't rely on requests to provide the auth header, since it fails
             # miserably with exotic characters in passwords (encoding != latin-1)
-            basic_auth = 'Basic ' + to_native_string(b64encode(
+            basic_auth = 'Basic ' + to_native_string((
                 ('%s:%s' % (user, password)).encode('utf-8')).strip())
 
-            response = requests.get(CONF.cc_password.url,
+            # HTTP post requests is the new normal
+            response = requests.post(CONF.cc_password.url,
                                     headers={
-                                        'Content-Type': 'application/xml; charset=utf-8',
+                                        'Content-Type': 'application/json; charset=utf-8',
                                         'Authorization': basic_auth
                                     },
                                     verify=CONF.cc_password.secure)
